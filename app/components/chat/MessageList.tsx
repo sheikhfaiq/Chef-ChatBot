@@ -1,9 +1,8 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import ChatMessage from "./ChatMessage"
 
-interface Message {
+type Message = {
   id: string
   text: string
   from: "user" | "bot"
@@ -14,33 +13,48 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages }: MessageListProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    containerRef.current?.scrollTo({
-      top: containerRef.current.scrollHeight,
-      behavior: "smooth",
-    })
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  if (messages.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-gray-400">
+        <div className="text-center">
+          <div className="text-6xl mb-4">👨‍🍳</div>
+          <p className="text-lg font-medium">Welcome to Chef Maria!</p>
+          <p className="text-sm mt-2">Ask me about recipes, place orders, or search for culinary info</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-white via-blue-50/30 to-white scroll-smooth"
-    >
-      {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">👨‍🍳</span>
-            </div>
-            <p className="text-gray-500 font-medium">Start your conversation</p>
-            <p className="text-xs text-gray-400 mt-2">Ask me anything about cooking!</p>
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {messages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+              msg.from === "user"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+
+
+            {msg.from === "bot" && msg.text === "" && (
+              <span className="inline-block w-2 h-4 ml-1 bg-gray-600 animate-pulse" />
+            )}
           </div>
         </div>
-      ) : (
-        messages.map((msg) => <ChatMessage key={msg.id} message={msg.text} from={msg.from} />)
-      )}
+      ))}
+      <div ref={messagesEndRef} />
     </div>
   )
 }

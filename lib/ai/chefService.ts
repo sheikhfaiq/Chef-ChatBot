@@ -2,9 +2,18 @@ import { geminiClient } from './gemini';
 import { CHEF_SYSTEM_PROMPT } from './prompt';
 import { orderFunctionDeclarations, placeOrder } from './orderFunctions';
 import { searchFunctionDeclarations, performWebSearch } from './searchFunctions';
+import { ChatHistoryManager } from './chatHistory';
 
-export async function generateChefResponse(userMessage: string): Promise<string> {
+export async function* generateChefResponseStream(
+  userMessage: string,
+  sessionId: string
+): AsyncGenerator<string> {
+  const historyManager = new ChatHistoryManager(sessionId);
+
   try {
+
+    historyManager.addMessage('user', userMessage);
+
     const model = geminiClient.getGenerativeModel({
       model: 'gemini-2.5-flash',
       systemInstruction: CHEF_SYSTEM_PROMPT,
@@ -16,54 +25,114 @@ export async function generateChefResponse(userMessage: string): Promise<string>
       }]
     });
 
-    const chat = model.startChat();
 
-    const result = await chat.sendMessage(userMessage);
-    const response = result.response;
+    const history = historyManager.getFormattedHistory();
 
-    const functionCalls = response.functionCalls();
 
-    if (functionCalls && functionCalls.length > 0) {
-      const functionResponses = await Promise.all(
-        functionCalls.map(async (call) => {
-          // Handle order placement
-          if (call.name === 'place_order') {
-            const orderResult = await placeOrder(call.args);
-            return {
-              functionResponse: {
-                name: call.name,
-                response: orderResult
-              }
-            };
+    const chat = model.startChat({
+      history: history.slice(0, -1)
+    });
+
+    console.log('Chat history length:', history.length - 1);
+
+
+    const result = await chat.sendMessageStream(userMessage);
+
+    let fullResponse = '';
+    let functionCallDetected = false;
+
+
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+
+
+      const functionCalls = chunk.functionCalls();
+
+      if (functionCalls && functionCalls.length > 0) {
+        functionCallDetected = true;
+
+        console.log('Function calls detected:', functionCalls.map(f => f.name));
+
+
+        const functionResponses = await Promise.all(
+          functionCalls.map(async (call) => {
+
+            if (call.name === 'place_order') {
+              console.log('Processing order:', call.args);
+              const orderResult = await placeOrder(call.args);
+              return {
+                functionResponse: {
+                  name: call.name,
+                  response: orderResult
+                }
+              };
+            }
+
+
+            if (call.name === 'web_search') {
+              console.log('Performing search:', call.args);
+              const searchResult = await performWebSearch(call.args);
+              return {
+                functionResponse: {
+                  name: call.name,
+                  response: searchResult
+                }
+              };
+            }
+
+            return null;
+          })
+        );
+
+        const validResponses = functionResponses.filter(r => r !== null);
+
+
+        const finalResult = await chat.sendMessageStream(validResponses);
+
+        for await (const finalChunk of finalResult.stream) {
+          const finalText = finalChunk.text();
+          if (finalText) {
+            fullResponse += finalText;
+            yield finalText;
           }
-
-          // Handle web search
-          if (call.name === 'web_search') {
-            const searchResult = await performWebSearch(call.args);
-            return {
-              functionResponse: {
-                name: call.name,
-                response: searchResult
-              }
-            };
-          }
-
-          return null;
-        })
-      );
-
-      const validResponses = functionResponses.filter(r => r !== null);
+        }
 
 
-      const finalResult = await chat.sendMessage(validResponses);
-      const finalResponse = finalResult.response;
+        historyManager.addMessage('model', fullResponse);
+        return;
+      }
 
-      return finalResponse.text() || 'Response processed.';
+
+      if (chunkText) {
+        fullResponse += chunkText;
+        yield chunkText;
+      }
     }
 
-    return response.text() || 'Sorry, no reply from ChefBot.';
+
+    if (!functionCallDetected && fullResponse) {
+      historyManager.addMessage('model', fullResponse);
+    }
+
   } catch (error) {
-    console.error('Chef service error:', error);
-    throw new Error('Failed to generate chef response');
+    console.error('Chef service streaming error:', error);
+    const errorMessage = 'Sorry, I encountered an error. Please try again.';
+    historyManager.addMessage('model', errorMessage);
+    yield errorMessage;
   }
 }
+
+
+export async function generateChefResponse(
+  userMessage: string,
+  sessionId: string
+): Promise<string> {
+  let fullResponse = '';
+  for await (const chunk of generateChefResponseStream(userMessage, sessionId)) {
+    fullResponse += chunk;
+  }
+  return fullResponse;
+}
+
+
+export { ChatHistoryManager };

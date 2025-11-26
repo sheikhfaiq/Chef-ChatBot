@@ -20,3 +20,16 @@ export interface OrderResponse {
   message?: string;
   error?: string;
 }
+
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  parts: Array<{ text: string }>;
+}
+
+export interface ChatSession {
+  sessionId: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
