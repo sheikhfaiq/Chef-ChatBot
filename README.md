@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+ChefBot – AI-Powered Culinary Assistant
 
-## Getting Started
+ChefBot is an advanced AI cooking and food-ordering assistant built using Google Gemini 2.5 Flash. It offers natural conversation, real-time Google Search, and automated order placement through function calling. Designed for smart kitchens, food-delivery apps, and interactive cooking assistants, ChefBot delivers fast, context-aware, and reliable responses.
 
-First, run the development server:
+Features
+AI Chef Assistant
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+ChefBot behaves like a professional chef. It provides recipes, ingredient substitutes, cooking instructions, meal plans, and general food knowledge. Responses are tailored using a custom prompt defining the ChefBot persona.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Google Search Integration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ChefBot can access real-time information using built-in Google Search tools. It can look up:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Recipe ideas
 
-## Learn More
+Ingredient details
 
-To learn more about Next.js, take a look at the following resources:
+Restaurant information
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Food-related facts and nutritional data
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Automated Order Placement
 
-## Deploy on Vercel
+ChefBot can understand when the user wants to place a food order. Using function calling, it extracts:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Dish names and quantities
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Delivery address
+
+Delivery time
+
+Special instructions
+
+This data is passed to backend logic to process the order. The bot then returns a confirmation message to the user.
+
+Backend Function Calling System
+
+The project includes structured function schemas, a function executor, and a unified AI service. When the model triggers a function call, the backend automatically handles it and returns the result to the conversation.
+
+Real Chat Experience
+
+ChefBot integrates seamlessly with a frontend chat interface. The backend manages the full flow, including message handling, AI response generation, function-calling decisions, and execution.
+
+Tech Stack
+
+Next.js / React
+
+Node.js backend
+
+Google Gemini 2.5 Flash
+
+JavaScript
+
+Function Calling
+
+Google Search Tools
+
+Project Structure
+
+AI service files for Gemini communication
+
+Function schemas defining order and search capabilities
+
+Function executor for backend actions
+
+Chat API route handling messages
+
+Frontend chat interface for user interaction
+
+Project Setup
+
+Clone the repository
+
+Install dependencies
+
+Add a Google API key to environment variables
+
+Start the development server
+
+Access the chatbot in your browser
+
+Running the Project
+
+After setup, run the development server and interact with ChefBot at the default local URL. The chatbot will handle recipes, cooking questions, live searches, and food-order placements automatically.
+
+Production Deployment
+
+Build and run the production version using your preferred hosting service or deployment platform compatible with Next.js.
+
+Contribution
+
+Contributions, improvements, and feature requests are welcome. Open an issue or submit a pull request to help improve ChefBot.

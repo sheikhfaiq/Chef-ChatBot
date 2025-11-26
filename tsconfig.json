@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
     "plugins": [
       {
         "name": "next"
@@ -29,6 +30,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/test-gemini.js", "lib/ai/chefService.js", "lib/ai/functionExecutor.js", "lib/ai/functionSchemas.js", "lib/ai/functionTypes.js"  ],
   "exclude": ["node_modules"]
 }
